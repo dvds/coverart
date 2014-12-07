@@ -18,9 +18,8 @@ fi
 # declare variables
 OUTPUT_FILENAME="DVDs.ps"
 
-# generate the index file
-echo "TODO - generate the index"
-echo "%!PS" > "$OUTPUT_FILENAME"
+# execute the generator
+python -B coverart-index-generator.py "$OUTPUT_FILENAME"
 
 if [ $? -ne 0 ]
 then
