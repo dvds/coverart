@@ -96,31 +96,10 @@ class TileData(object):
         if self.__new_page:
             lines.append("showpage")
 
-        # draw bounding box
-        lines.append("newpath")
-        lines.append("{0} {1} moveto".format(self.__origin_x, self.__origin_y))
-        lines.append("{0} {1} lineto".format(self.__origin_x + self.__width, self.__origin_y))
-        lines.append("{0} {1} lineto".format(self.__origin_x + self.__width, self.__origin_y + self.__height))
-        lines.append("{0} {1} lineto".format(self.__origin_x, self.__origin_y + self.__height))
-        lines.append("{0} {1} lineto".format(self.__origin_x, self.__origin_y))
-        lines.append("closepath")
-        lines.append("0.1 setlinewidth")
-        lines.append("stroke")
-        lines.append("")
-
         # draw name
         lines.append("/Helvetica findfont {0} scalefont setfont".format(self.__font_size))
         lines.append("{0} {1} moveto".format((self.__origin_x + (self.__width / 2.0)), (self.__origin_y + self.__height - self.__font_size)))
         lines.append("({0}) dup stringwidth pop 2 div neg 0 rmoveto show".format(self.__image_data.get_name()))
-        lines.append("")
-
-        # draw delimiting line
-        lines.append("newpath")
-        lines.append("{0} {1} moveto".format(self.__origin_x, self.__origin_y + self.__height - (2 * self.__font_size)))
-        lines.append("{0} {1} lineto".format(self.__origin_x + self.__width, self.__origin_y + self.__height - (2 * self.__font_size)))
-        lines.append("closepath")
-        lines.append("0.1 setlinewidth")
-        lines.append("stroke")
         lines.append("")
 
         # draw image
