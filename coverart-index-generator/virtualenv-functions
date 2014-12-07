@@ -1,0 +1,105 @@
+# create a virtual python environment, activates the interpreter and loads PIP requirements
+function create_virtualenv_with_pip_requirements() {
+    # ensure basic requirements are met
+    if [ ! __check_pip_and_virtualenv_installed ]
+    then
+        return 1
+    fi
+
+    local return_code=0
+
+    # randomise the virtual environment name
+    VENV_DIRECTORY="/tmp/$RANDOM"
+
+    # create virtual python environment
+    virtualenv --quiet --clear --python=python2.7 "$VENV_DIRECTORY" > /dev/null
+    return_code=$?
+
+    # exit if there is a problem creating the virtual environment
+    if [ $return_code -ne 0 ]
+    then
+        __echo_to_stderr "virtualenv exited with return code $return_code"
+        return 1
+    fi
+
+    # switch to local python interpreter
+    source "$VENV_DIRECTORY/bin/activate"
+
+    # load pip requirements
+    pip --quiet install --requirement=requirements.txt
+    return_code=$?
+
+    # exit if there is a problem installing the pip packages
+    if [ $return_code -ne 0 ]
+    then
+        __echo_to_stderr "pip exited with return code $return_code"
+        return 1
+    fi
+
+    return 0
+}
+
+
+# delete the virtual environment directory (if it exists)
+function destroy_virtualenv() {
+    if [ ! -z "$VENV_DIRECTORY" ]
+    then
+        rm -rf "$VENV_DIRECTORY"
+    fi
+}
+
+
+# checks that python, python-pip and virtual-env are all installed
+function __check_pip_and_virtualenv_installed() {
+    if [ ! __check_apt_packages_installed python python-pip ]
+    then
+        __echo_to_stderr "apt package dependencies are unmet"
+        return 1
+    fi
+
+    if [ ! __check_pip_packages_installed virtualenv ]
+    then
+        __echo_to_stderr "pip package dependencies are unmet"
+        return 1
+    fi
+
+    return 0
+}
+
+
+# checks that the supplied APT packages have been installed
+function __check_apt_packages_installed() {
+    local return_code=0
+
+    for apt_package in "$@"
+    do
+        dpkg --get-selections "$apt_package" 2> /dev/null | grep install > /dev/null || {
+            __echo_to_stderr "$apt_package is not installed"
+            return_code=1
+        }
+    done
+    
+    return $return_code
+}
+
+
+# checks that the supplied PIP packages have been installed
+function __check_pip_packages_installed() {
+    local return_code=0
+
+    for pip_package in "$@"
+    do
+        pip list | grep "$pip_package" > /dev/null || {
+            __echo_to_stderr "$pip_package is not installed"
+            return_code=1
+        }
+    done
+    
+    return $return_code
+}
+
+
+# write to stderr stream
+function __echo_to_stderr() {
+    echo "$@" 1>&2
+}
