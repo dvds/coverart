@@ -1,7 +1,18 @@
 #!/bin/bash
 
+# where is this script executing?
+SCRIPT_DIRECTORY=$(readlink -f "$(dirname "$0")")
+
+pushd "$SCRIPT_DIRECTORY"
+
 # import virtualenv functions
 source "virtualenv-functions"
+
+if [ $? -ne 0 ]
+then
+    echo "Cannot source virtualenv-functions"
+    exit 1
+fi
 
 # exit if virtual environment cannot be created
 if [ ! create_virtualenv_with_pip_requirements ]
@@ -19,7 +30,7 @@ fi
 OUTPUT_FILENAME="DVDs.ps"
 
 # execute the generator
-python -B coverart-index-generator.py "$OUTPUT_FILENAME"
+python -B "coverart-index-generator.py" "$OUTPUT_FILENAME"
 
 if [ $? -ne 0 ]
 then

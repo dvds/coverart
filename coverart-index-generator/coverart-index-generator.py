@@ -2,7 +2,7 @@
 
 
 from glob import glob
-from os.path import basename, join, splitext
+from os.path import basename, dirname, join, splitext
 from PIL import Image
 from sys import argv
 
@@ -154,7 +154,7 @@ def main(output_file_name):
     TILE_COLUMNS = 2
     TILE_ROWS = 3
 
-    jpg_files = glob(join("..", "*.jpg"))
+    jpg_files = glob(join(dirname(output_file_name), "..", "*.jpg"))
     jpg_files.sort()
 
     with open(output_file_name, "w") as output_file:
