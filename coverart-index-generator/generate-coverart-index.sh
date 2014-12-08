@@ -3,7 +3,7 @@
 # where is this script executing?
 SCRIPT_DIRECTORY=$(readlink -f "$(dirname "$0")")
 
-pushd "$SCRIPT_DIRECTORY"
+pushd "$SCRIPT_DIRECTORY" > /dev/null
 
 # import virtualenv functions
 source "virtualenv-functions"
