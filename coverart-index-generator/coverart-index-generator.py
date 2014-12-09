@@ -77,7 +77,7 @@ class TileData(object):
 
         else:
             # image needs to be scaled
-            tile_width_height_scale_factor = self.__width * 1.0 / self.__height
+            tile_width_height_scale_factor = self.__width * 1.0 / available_image_height
             image_width_height_scale_factor = self.__image_data.get_print_width_in_points() * 1.0 / self.__image_data.get_print_height_in_points()
             if tile_width_height_scale_factor < image_width_height_scale_factor:
                 # image is more tall than wide
