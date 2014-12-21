@@ -88,19 +88,13 @@ class TileData(object):
                 image_width = self.__width * image_width_height_scale_factor / tile_width_height_scale_factor
                 image_height = available_image_height
 
-        return self.__origin_x + (self.__width / 2.0) - (image_width / 2.0), self.__origin_y + (available_image_height / 2.0) - (image_height / 2.0), image_width, image_height
+        return self.__origin_x + (self.__width / 2.0) - (image_width / 2.0), self.__origin_y + (available_image_height / 2.0) - (image_height / 2.0) + (2 * self.__font_size), image_width, image_height
 
     def get_postscript(self):
         lines = []
 
         if self.__new_page:
             lines.append("showpage")
-
-        # draw name
-        lines.append("/Helvetica findfont {0} scalefont setfont".format(self.__font_size))
-        lines.append("{0} {1} moveto".format((self.__origin_x + (self.__width / 2.0)), (self.__origin_y + self.__height - self.__font_size)))
-        lines.append("({0}) dup stringwidth pop 2 div neg 0 rmoveto show".format(self.__image_data.get_name()))
-        lines.append("")
 
         # draw image
         image_origin_x, image_origin_y, image_width, image_height = self.__calculate_image_position_within_tile()
@@ -113,6 +107,12 @@ class TileData(object):
         lines.append(">}")
         lines.append("false 3 colorimage")
         lines.append("grestore")
+        lines.append("")
+
+        # draw name
+        lines.append("/Helvetica findfont {0} scalefont setfont".format(self.__font_size))
+        lines.append("{0} {1} moveto".format((self.__origin_x + (self.__width / 2.0)), self.__origin_y))
+        lines.append("({0}) dup stringwidth pop 2 div neg 0 rmoveto show".format(self.__image_data.get_name()))
         lines.append("")
 
         return "\n".join(lines)
