@@ -1,12 +1,16 @@
 # create a virtual python environment, activates the interpreter and loads PIP requirements
 function create_virtualenv_with_pip_requirements() {
+    local return_code=0
+
     # ensure basic requirements are met
-    if [ ! __check_pip_and_virtualenv_installed ]
+    __check_pip_and_virtualenv_installed
+    return_code=$?
+
+    # exit if requirements are unmet
+    if [ $return_code -ne 0 ]
     then
         return 1
     fi
-
-    local return_code=0
 
     # randomise the virtual environment name
     VENV_DIRECTORY="/tmp/$RANDOM"
@@ -51,13 +55,21 @@ function destroy_virtualenv() {
 
 # checks that python, python-pip and virtual-env are all installed
 function __check_pip_and_virtualenv_installed() {
-    if [ ! __check_apt_packages_installed python python-pip ]
+    local return_code=0
+
+    __check_apt_packages_installed python python-pip
+    return_code=$?
+
+    if [ $return_code -ne 0 ]
     then
         __echo_to_stderr "apt package dependencies are unmet"
         return 1
     fi
 
-    if [ ! __check_pip_packages_installed virtualenv ]
+    __check_pip_packages_installed virtualenv
+    return_code=$?
+
+    if [ $return_code -ne 0 ]
     then
         __echo_to_stderr "pip package dependencies are unmet"
         return 1

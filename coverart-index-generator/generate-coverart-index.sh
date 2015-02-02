@@ -15,7 +15,9 @@ then
 fi
 
 # exit if virtual environment cannot be created
-if [ ! create_virtualenv_with_pip_requirements ]
+create_virtualenv_with_pip_requirements
+
+if [ $? -ne 0 ]
 then
     exit 1
 fi
