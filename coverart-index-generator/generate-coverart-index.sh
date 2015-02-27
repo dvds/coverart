@@ -14,6 +14,12 @@ then
     exit 1
 fi
 
+# exit if python libs are not installed
+if ! __check_apt_packages_installed python-dev python-setuptools libjpeg8-dev
+then
+    exit 1
+fi
+
 # exit if virtual environment cannot be created
 create_virtualenv_with_pip_requirements
 
