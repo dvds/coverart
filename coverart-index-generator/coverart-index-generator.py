@@ -1,6 +1,7 @@
 """Builds a PDF that contains an index of all the cover art."""
 
 
+from collections import namedtuple
 from glob import glob
 from os.path import basename, dirname, join, splitext
 from PIL import Image
@@ -10,10 +11,11 @@ from sys import argv
 class ImageData(object):
     POINTS_PER_INCH = 72.0
 
-    def __init__(self, file):
-        self.__file = file
+    def __init__(self, name, file_path):
+        self.__name = name
+        self.__file_path = file_path
 
-        image = Image.open(self.__file)
+        image = Image.open(self.__file_path)
         if image.mode != "RGB":
             raise Exception("Only supports RGB images at present.")
         else:
@@ -30,7 +32,7 @@ class ImageData(object):
             self.__vertical_dpi = self.POINTS_PER_INCH
 
     def get_name(self):
-        return splitext(basename(self.__file))[0]
+        return self.__name
 
     def get_print_width_in_points(self):
         return int(round(self.width * self.POINTS_PER_INCH / self.__horizontal_dpi))
@@ -41,7 +43,7 @@ class ImageData(object):
     def get_pixel_data(self):
         lines = []
 
-        image = Image.open(self.__file)
+        image = Image.open(self.__file_path)
 
         line = []
         for y in range(0, self.height):
@@ -118,11 +120,11 @@ class TileData(object):
         return "\n".join(lines)
 
 
-def __generate_tile_data(page_width, page_height, page_margin, columns, rows, image_files):
+def __generate_tile_data(page_width, page_height, page_margin, columns, rows, coverart_items):
     tiles_per_page = columns * rows
 
     tile_counter = 0
-    for image_file in image_files:
+    for coverart_item in coverart_items:
         if tile_counter % tiles_per_page == 0:
             new_page = True
         else:
@@ -138,13 +140,17 @@ def __generate_tile_data(page_width, page_height, page_margin, columns, rows, im
         tile_row_ordinal = (tile_counter % (columns * rows)) / columns
         tile_origin_y = page_height - page_margin - tile_height - (tile_row_ordinal * (tile_height + tile_spacer_size))
 
-        image_data = ImageData(image_file)
+        image_data = ImageData(coverart_item.name, coverart_item.file_path)
 
         font_size = page_margin / 8.0
 
         yield TileData(new_page, tile_origin_x, tile_origin_y, tile_width, tile_height, image_data, font_size)
 
         tile_counter += 1
+
+
+def __get_filename_without_extension(file_name):
+    return splitext(basename(file_name))[0]
 
 
 def main(output_file_name):
@@ -155,7 +161,11 @@ def main(output_file_name):
     TILE_ROWS = 3
 
     jpg_files = glob(join(dirname(output_file_name), "..", "*.jpg"))
-    jpg_files.sort()
+
+    CoverArt = namedtuple('CoverArt', 'name file_path')
+
+    coverart_items = map(lambda f: CoverArt(__get_filename_without_extension(f), f), jpg_files)
+    coverart_items.sort(key=lambda ca: ca.name)
 
     with open(output_file_name, "w") as output_file:
 
@@ -166,10 +176,10 @@ def main(output_file_name):
         lines.append("")
         lines.append("/Helvetica findfont {0} scalefont setfont".format(POINTS_PER_INCH))
         lines.append("{0} {1} moveto".format(A4_WIDTH_IN_POINTS / 2.0, (A4_HEIGHT_IN_POINTS * 2 / 3.0) - (POINTS_PER_INCH / 2)))
-        lines.append("({0}) dup stringwidth pop 2 div neg 0 rmoveto show".format(splitext(basename(output_file_name))[0]))
+        lines.append("({0}) dup stringwidth pop 2 div neg 0 rmoveto show".format(__get_filename_without_extension(output_file_name)))
         lines.append("")
 
-        for tile_data in __generate_tile_data(A4_WIDTH_IN_POINTS, A4_HEIGHT_IN_POINTS, POINTS_PER_INCH, TILE_COLUMNS, TILE_ROWS, jpg_files):
+        for tile_data in __generate_tile_data(A4_WIDTH_IN_POINTS, A4_HEIGHT_IN_POINTS, POINTS_PER_INCH, TILE_COLUMNS, TILE_ROWS, coverart_items):
             lines.append(tile_data.get_postscript())
 
         lines.append("showpage")
